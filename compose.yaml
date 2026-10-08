@@ -1,0 +1,13 @@
+services:
+  bot:
+    build: .
+    restart: unless-stopped
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?Set TELEGRAM_BOT_TOKEN in .env}
+      TELEGRAM_PROXY: ${TELEGRAM_PROXY:-}
+      DATABASE_PATH: /app/data/reminder_bot.db
+    volumes:
+      - bot_data:/app/data
+
+volumes:
+  bot_data:

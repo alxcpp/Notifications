@@ -1,6 +1,8 @@
 import logging
+import os
 from datetime import datetime
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram.request import HTTPXRequest
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -23,7 +25,7 @@ logger = logging.getLogger(__name__)
 CHOOSING_ACTION, ADD_TYPE, ADD_TITLE, ADD_DESCRIPTION, ADD_DATE, DELETE_EVENT = range(6)
 
 # Инициализация базы данных
-db = Database()
+db = Database(os.getenv("DATABASE_PATH", "reminder_bot.db"))
 
 # Главное меню
 def get_main_menu():
@@ -298,11 +300,18 @@ async def check_reminders(application: Application):
 
 def main():
     """Запуск бота"""
-    # Вставьте сюда ваш токен от BotFather
-    TOKEN = "YOUR_BOT_TOKEN_HERE"
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    if not token:
+        raise RuntimeError("Не задана переменная окружения TELEGRAM_BOT_TOKEN")
 
-    # Создаем приложение
-    application = Application.builder().token(TOKEN).build()
+    # Настраиваем опциональный SOCKS5 proxy для API и long polling.
+    proxy_url = os.getenv("TELEGRAM_PROXY")
+    application_builder = Application.builder().token(token)
+    if proxy_url:
+        application_builder.request(HTTPXRequest(proxy=proxy_url))
+        application_builder.get_updates_request(HTTPXRequest(proxy=proxy_url))
+
+    application = application_builder.build()
 
     # Настраиваем ConversationHandler
     conv_handler = ConversationHandler(

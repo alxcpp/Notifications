@@ -10,47 +10,30 @@
 - ⏰ Автоматические напоминания за 7, 3 и 1 день до события
 - 🎯 Полностью кнопочный интерфейс
 
-## Установка
+## Запуск через Docker Compose
 
-### 1. Установите Python
-Убедитесь, что у вас установлен Python 3.8 или выше:
+Нужны Docker Engine и Docker Compose.
+
+1. Создайте бота в Telegram через [@BotFather](https://t.me/BotFather) командой `/newbot` и получите токен.
+2. Скопируйте `.env.example` в `.env` и укажите токен в `TELEGRAM_BOT_TOKEN`.
+3. При необходимости укажите SOCKS5 адрес в `TELEGRAM_PROXY`, например `socks5://user:password@host:1080`. Для прокси без авторизации используйте `socks5://host:1080`.
+4. Запустите сервис:
+
 ```bash
-python --version
+docker compose up -d --build
 ```
 
-### 2. Установите зависимости
-```bash
-pip install -r requirements.txt
-```
+SQLite хранится в именованном Docker volume `bot_data` и переживает пересоздание контейнера. Логи можно посмотреть командой `docker compose logs -f bot`, остановить сервис — `docker compose down`.
 
-### 3. Создайте бота в Telegram
+Если в логине или пароле прокси есть специальные символы, закодируйте их для URL.
 
-1. Откройте Telegram и найдите [@BotFather](https://t.me/BotFather)
-2. Отправьте команду `/newbot`
-3. Придумайте имя для бота (например: "Мой напоминатель")
-4. Придумайте username для бота (должен заканчиваться на `bot`, например: `my_reminder_bot`)
-5. BotFather даст вам токен вида: `1234567890:ABCdefGHIjklMNOpqrsTUVwxyz`
-6. Скопируйте этот токен
+## Запуск без Docker
 
-### 4. Настройте токен
-
-Откройте файл `bot.py` и замените строку:
-```python
-TOKEN = "YOUR_BOT_TOKEN_HERE"
-```
-
-На:
-```python
-TOKEN = "ваш_токен_от_BotFather"
-```
-
-## Запуск
+Установите зависимости командой `pip install -r requirements.txt`, задайте `TELEGRAM_BOT_TOKEN` (и при необходимости `TELEGRAM_PROXY`), затем запустите:
 
 ```bash
 python bot.py
 ```
-
-После запуска бот будет работать постоянно. Оставьте окно терминала открытым.
 
 ## Использование
 
@@ -86,29 +69,27 @@ python bot.py
 - `bot.py` — основной файл бота
 - `database.py` — работа с базой данных
 - `requirements.txt` — список зависимостей
-- `reminder_bot.db` — база данных (создается автоматически)
+- `Dockerfile` и `compose.yaml` — контейнерный запуск
+- `reminder_bot.db` — база данных (создается автоматически в volume при запуске через Compose)
 
 ## Остановка бота
 
-Нажмите `Ctrl+C` в терминале, где запущен бот.
-
-## Запуск бота в фоне (Linux/Mac)
-
-Если хотите, чтобы бот работал постоянно в фоновом режиме:
+Остановить контейнер можно командой:
 
 ```bash
-nohup python bot.py > bot.log 2>&1 &
+docker compose stop
 ```
 
-Остановить фоновый процесс:
+Для повторного запуска:
+
 ```bash
-pkill -f bot.py
+docker compose start
 ```
 
 ## Возможные проблемы
 
 ### Бот не запускается
-- Проверьте, что правильно указали токен в `bot.py`
+- Проверьте значение `TELEGRAM_BOT_TOKEN` в `.env`
 - Убедитесь, что установлены все зависимости: `pip install -r requirements.txt`
 
 ### Напоминания не приходят
